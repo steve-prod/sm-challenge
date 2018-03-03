@@ -1,6 +1,6 @@
 /*
  * app.js implements a small subset of the Smartcar API spec.
- * It implepements the following API endpoints:
+ * It implepements the following Smartcar API endpoints:
  *
  * GET /vehicles/:id
  * GET /vehicles/:id/doors
