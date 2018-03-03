@@ -17,6 +17,6 @@ const express = require('express');
 // initialize the app
 const app = express();
 const port = 3000;
-require('./routes.js')(app);
+require('./routes/vehicles.js')(app);
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.listen(port, () => console.log(`Smartcar API listening on port ${port}!`));

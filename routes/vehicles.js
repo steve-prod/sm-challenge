@@ -9,6 +9,7 @@ module.exports = function(app) {
     app.use(bodyParser.json());
 
 
+
     /*
      *    GET /vehicles/:id
      *    returns JSON in the following format:
@@ -22,37 +23,13 @@ module.exports = function(app) {
     app.all('/vehicles/:id', (req, res) => {
         passGetRequestToGmApi('/getVehicleInfoService', req, res)
         .then((gmData) => {
-            gmData = JSON.parse(gmData);
-            // extract vin, color, doorCount and driveTrain from data
-            const vin = gmData.data.vin.value;
-            const color = gmData.data.color.value;
-            var doorCount;
-            // Schrödinger's car: car is simultaneously 2-door AND 4-door -> Return 500
-            if (gmData.data.fourDoorSedan.value === "True" && gmData.data.twoDoorCoupe.value === "True") {
-                res.statusCode = 500;
-                res.end("");
-            // Car is neither 2-door nor 4-door -> Return 500?  Assume 3-door?
-            } else if (gmData.data.fourDoorSedan.value === "False" && gmData.data.twoDoorCoupe.value === "False") {
-                res.statusCode = 500;
-                res.end("");
-            } else if (gmData.data.fourDoorSedan.value === "True") {
-                doorCount = 4;
-            } else if(gmData.data.twoDoorCoupe.value === "True") {
-                doorCount = 2;
-            } else {
-                res.statusCode = 500;
-                res.end("");
-            }
-            const driveTrain = gmData.data.driveTrain.value;
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify({vin, color, doorCount, driveTrain}));
+            const smartcarData = convertVehicleInfo(gmData);
+            sendClient200(smartcarData, res);
         }, (err) => {
-            console.log(err);
-            res.statusCode = 405;
-            res.end(err);
+            sendClient405(res);
         });
     });
+
 
 
     /*
@@ -72,31 +49,13 @@ module.exports = function(app) {
     app.all('/vehicles/:id/doors', (req, res) => {
         passGetRequestToGmApi('/getSecurityStatusService', req, res)
         .then((gmData) => {
-            gmData = JSON.parse(gmData);
-            // collect re-formatted data in doorData
-            var doorData = [];
-            gmData.data.doors.values.forEach((val, index) => {
-                var myDoor = {};
-                myDoor.location = val.location.value;
-                if (val.locked.value === "True") {
-                    myDoor.locked = true;
-                } else if (val.locked.value === "False") {
-                    myDoor.locked = false;
-                } else {
-                    res.statusCode = 500;
-                    res.end("");
-                }
-                doorData.push(myDoor);
-            });
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(doorData));
+            const smartcarData = convertSecurityStatus(gmData);
+            sendClient200(smartcarData, res);
         }, (err) => {
-            console.log(err);
-            res.statusCode = 405;
-            res.end(err);
+            sendClient405(res);
         });
     });
+
 
 
     /*
@@ -109,17 +68,13 @@ module.exports = function(app) {
     app.all('/vehicles/:id/fuel', (req, res) => {
         passGetRequestToGmApi('/getEnergyService', req, res)
         .then((gmData) => {
-            gmData = JSON.parse(gmData);
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            // cast tankLevel to a number
-            res.end(JSON.stringify({"percent": +gmData.data.tankLevel.value}));
+            const smartcarData = convertEnergyToFuel(gmData);
+            sendClient200(smartcarData, res);
         }, (err) => {
-            console.log(err);
-            res.statusCode = 405;
-            res.end(err);
+            sendClient405(res);
         });
     });
+
 
 
     /*
@@ -132,17 +87,13 @@ module.exports = function(app) {
     app.all('/vehicles/:id/battery', (req, res) => {
         passGetRequestToGmApi('/getEnergyService', req, res)
         .then((gmData) => {
-            gmData = JSON.parse(gmData);
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            // cast batteryLevel to a number
-            res.end(JSON.stringify({"percent": +gmData.data.batteryLevel.value}));
+            const smartcarData = convertEnergyToBattery(gmData);
+            sendClient200(smartcarData, res);
         }, (err) => {
-            console.log(err);
-            res.statusCode = 405;
-            res.end(err);
+            sendClient405(res);
         });
     });
+
 
 
     /*
@@ -153,36 +104,101 @@ module.exports = function(app) {
      *    }
      */
     app.all('/vehicles/:id/engine', (req, res) => {
-        if (req.method !== 'POST') {
-            res.statusCode = 405;
-            res.end("Method Not Allowed");
-            return;
-        }
-        const id = req.params.id;
-        const action = req.body.action;
-        const data = `{"id": ${id}, "command": "${action}_VEHICLE", "responseType": "JSON"}`;
-        makeGmApiPostRequest('/actionEngineService', data)
+        passPostRequestToGmApi('/actionEngineService', req, res)
         .then((gmData) => {
-            gmData = JSON.parse(gmData);
-            res.statusCode = 200;
-            res.setHeader('Content-Type', 'application/json');
-            var status;
-            if (gmData.actionResult.status === "EXECUTED") {
-                status = "success";
-            } else if (gmData.actionResult.status === "FAILED") {
-                status = "error";
-            } else {
-                res.statusCode = 500;
-                res.end("");
-            }
-            res.end(JSON.stringify({"status": status}));
+            const smartcarData = convertEngineAction(gmData);
+            sendClient200(smartcarData, res);
         }, (err) => {
-            console.log(err);
+            sendClient405(res);
         });
     });
 
+
     // END OF EXPORTED MODULE
 };
+
+
+/*
+ * Data conversion functions: GM API data format -> Smartcar API data format
+ */
+
+
+ function convertVehicleInfo(gmData) {
+     gmData = JSON.parse(gmData);
+     // extract vin, color, doorCount and driveTrain from data
+     const vin = gmData.data.vin.value;
+     const color = gmData.data.color.value;
+     var doorCount;
+     // Schrödinger's car: car is simultaneously 2-door AND 4-door -> Return 500
+     if (gmData.data.fourDoorSedan.value === "True" && gmData.data.twoDoorCoupe.value === "True") {
+         res.statusCode = 500;
+         res.end("");
+     // Car is neither 2-door nor 4-door -> Return 500?  Assume 3-door?
+     } else if (gmData.data.fourDoorSedan.value === "False" && gmData.data.twoDoorCoupe.value === "False") {
+         res.statusCode = 500;
+         res.end("");
+     } else if (gmData.data.fourDoorSedan.value === "True") {
+         doorCount = 4;
+     } else if(gmData.data.twoDoorCoupe.value === "True") {
+         doorCount = 2;
+     } else {
+         res.statusCode = 500;
+         res.end("");
+     }
+     const driveTrain = gmData.data.driveTrain.value;
+     return {vin, color, doorCount, driveTrain};
+ }
+
+
+ function convertSecurityStatus(gmData) {
+     gmData = JSON.parse(gmData);
+     // collect re-formatted data in doorData
+     var doorData = [];
+     gmData.data.doors.values.forEach((val, index) => {
+         var myDoor = {};
+         myDoor.location = val.location.value;
+         if (val.locked.value === "True") {
+             myDoor.locked = true;
+         } else if (val.locked.value === "False") {
+             myDoor.locked = false;
+         } else {
+             res.statusCode = 500;
+             res.end("");
+         }
+         doorData.push(myDoor);
+     });
+     return doorData;
+ }
+
+
+ function convertEnergyToFuel(gmData) {
+     gmData = JSON.parse(gmData);
+     // cast tankLevel to a number
+     return {"percent": +gmData.data.tankLevel.value};
+ }
+
+
+ function convertEnergyToBattery(gmData) {
+     gmData = JSON.parse(gmData);
+     // cast batteryLevel to a number
+     return {"percent": +gmData.data.batteryLevel.value}
+ }
+
+
+ function convertEngineAction(gmData) {
+     gmData = JSON.parse(gmData);
+     var status;
+     if (gmData.actionResult.status === "EXECUTED") {
+         status = "success";
+     } else if (gmData.actionResult.status === "FAILED") {
+         status = "error";
+     } else {
+         res.statusCode = 500;
+         res.end("");
+     }
+     return {"status": status};
+ }
+
 
 
 /*
@@ -202,6 +218,17 @@ function passGetRequestToGmApi(endpoint, req, res) {
     const id = req.params.id;
     const data = `{"id": ${id}, "responseType": "JSON"}`;
     return makeGmApiPostRequest(endpoint, data)
+}
+
+// passPostRequestToGmApi makes a POST request to the specified endpoint of the GM API
+function passPostRequestToGmApi(endpoint, req, res) {
+    if (req.method !== 'POST') {
+        return new Promise((resolve, reject) => {reject("Method Not Allowed");});
+    }
+    const id = req.params.id;
+    const action = req.body.action;
+    const data = `{"id": ${id}, "command": "${action}_VEHICLE", "responseType": "JSON"}`;
+    return makeGmApiPostRequest(endpoint, data);
 }
 
 // makeGmApiPostRequest makes http requests to the GM API
@@ -240,4 +267,17 @@ function makeGmApiPostRequest(endpoint, data) {
         gmReq.write(data);
         gmReq.end();
     });
+}
+
+function sendClient200(smartcarData, res) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(smartcarData));
+}
+
+
+function sendClient405(res) {
+    console.log(err);
+    res.statusCode = 405;
+    res.end(err);
 }
