@@ -1,10 +1,16 @@
 /*
  * vehicles.js sets up the /vehicles resource API endpoints
+ * The general design pattern used in the five routes below is to:
+ * 1. register the endpoint with app
+ * 2. use the GmApi service to check id/method AND get/set data
+ * 3. use a data conversion function from ConvertVehicleData to properly format data
+ * 4. use Client service to send converted data (or error) back to the client
  */
 
 const bodyParser = require('body-parser');
 const ConvertVehicleData = require('../utilities/ConvertVehicleData.js');
 const GmApi = require('../services/GmApi.js');
+const Client = require('../services/Client.js');
 
 module.exports = function(app) {
     app.use(bodyParser.json());
@@ -25,9 +31,9 @@ module.exports = function(app) {
         GmApi.Get('/getVehicleInfoService', req, res)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.info(gmData);
-            sendClient200(smartcarData, res);
+            Client.sendData(smartcarData, res, 200);
         }, (err) => {
-            sendClient405(err, res);
+            Client.sendError(err, res);
         });
     });
 
@@ -51,9 +57,9 @@ module.exports = function(app) {
         GmApi.Get('/getSecurityStatusService', req, res)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.securityStatus(gmData);
-            sendClient200(smartcarData, res);
+            Client.sendData(smartcarData, res, 200);
         }, (err) => {
-            sendClient405(err, res);
+            Client.sendError(err, res);
         });
     });
 
@@ -70,9 +76,9 @@ module.exports = function(app) {
         GmApi.Get('/getEnergyService', req, res)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.energyToFuel(gmData);
-            sendClient200(smartcarData, res);
+            Client.sendData(smartcarData, res, 200);
         }, (err) => {
-            sendClient405(err, res);
+            Client.sendError(err, res);
         });
     });
 
@@ -89,9 +95,9 @@ module.exports = function(app) {
         GmApi.Get('/getEnergyService', req, res)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.energyToBattery(gmData);
-            sendClient200(smartcarData, res);
+            Client.sendData(smartcarData, res, 200);
         }, (err) => {
-            sendClient405(err, res);
+            Client.sendError(err, res);
         });
     });
 
@@ -108,28 +114,10 @@ module.exports = function(app) {
         GmApi.Post('/actionEngineService', req, res)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.engineAction(gmData);
-            sendClient200(smartcarData, res);
+            Client.sendData(smartcarData, res, 200);
         }, (err) => {
-            sendClient405(err, res);
+            Client.sendError(err, res);
         });
     });
 
 };
-
-
-/*
- * Helper functions
- */
-
-function sendClient200(smartcarData, res) {
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(smartcarData));
-}
-
-
-function sendClient405(err, res) {
-    console.log(err);
-    res.statusCode = 405;
-    res.end(err);
-}

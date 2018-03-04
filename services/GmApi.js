@@ -9,7 +9,8 @@ const http = require('http');
      if (req.method !== 'GET') {
          return new Promise((resolve, reject) => {reject("Method Not Allowed");});
      }
-     const id = req.params.id;
+     // strip non-numeric characters from IDs
+     const id = req.params.id.replace(/[^0-9]/g, "");
      const data = `{"id": ${id}, "responseType": "JSON"}`;
      return makeGmApiPostRequest(endpoint, data)
  }
@@ -19,8 +20,13 @@ const http = require('http');
      if (req.method !== 'POST') {
          return new Promise((resolve, reject) => {reject("Method Not Allowed");});
      }
-     const id = req.params.id;
-     const action = req.body.action;
+     // strip non-numeric characters from ID
+     const id = req.params.id.replace(/[^0-9]/g, "");
+     // strip non-ALPHABETIC characters from action
+     const action = req.body.action.replace(/[^A-Z]/g, "");
+     if (action !== "START" && action !== "STOP") {
+         // TODO: return 400
+     }
      const data = `{"id": ${id}, "command": "${action}_VEHICLE", "responseType": "JSON"}`;
      return makeGmApiPostRequest(endpoint, data);
  }
@@ -65,5 +71,5 @@ const http = require('http');
 
 module.exports = {
     Get: Get,
-    Post: Post,
+    Post: Post
 };
