@@ -4,7 +4,7 @@
 
 const http = require('http');
 
- // Get processes GET requests to the Smartcar API and makes appropriate request to GM API
+ // Get processes GET requests to the Smartcar API and makes POST request to GM API
  function Get(endpoint, req, res) {
      if (req.method !== 'GET') {
          return new Promise((resolve, reject) => {reject("Method Not Allowed");});
@@ -15,7 +15,7 @@ const http = require('http');
      return makeGmApiPostRequest(endpoint, data)
  }
 
- // Post processes POST requests to the Smartcar API and makes appropriate request to GM API
+ // Post processes POST requests to the Smartcar API and makes POST request to GM API
  function Post(endpoint, req, res) {
      if (req.method !== 'POST') {
          return new Promise((resolve, reject) => {reject("Method Not Allowed");});
@@ -31,7 +31,7 @@ const http = require('http');
      return makeGmApiPostRequest(endpoint, data);
  }
 
- // makeGmApiPostRequest makes http requests to the GM API
+ // makeGmApiPostRequest makes http POST requests to the GM API
  function makeGmApiPostRequest(endpoint, data) {
      return new Promise((resolve, reject) => {
          const options = {

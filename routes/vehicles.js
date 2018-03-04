@@ -1,8 +1,10 @@
 /*
  * vehicles.js sets up the /vehicles resource API endpoints
- * The general design pattern used in the five routes below is to:
+ * The general design pattern used in the routes below is to:
  * 1. register the endpoint with app
- * 2. use the GmApi service to check id/method AND get/set data
+ * 2. use the GmApi service to:
+ *        check user input(s) and http method
+ *        send/retrieve data
  * 3. use a data conversion function from ConvertVehicleData to properly format data
  * 4. use Client service to send converted data (or error) back to the client
  */
