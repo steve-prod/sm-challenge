@@ -7,8 +7,6 @@
  * GET /vehicles/:id/fuel
  * GET /vehicles/:id/battery
  * POST /vehicles/:id/engine
- *
- * All responses are well-formatted JSON.
  */
 
 // import packages
