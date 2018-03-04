@@ -1,9 +1,10 @@
 /*
- * routes.js sets up the API's endpoints
+ * vehicles.js sets up the /vehicles resource API endpoints
  */
 
 const http = require('http');
 const bodyParser = require('body-parser');
+const ConvertVehicleData = require('../utilities/ConvertVehicleData.js');
 
 module.exports = function(app) {
     app.use(bodyParser.json());
@@ -23,7 +24,7 @@ module.exports = function(app) {
     app.all('/vehicles/:id', (req, res) => {
         passGetRequestToGmApi('/getVehicleInfoService', req, res)
         .then((gmData) => {
-            const smartcarData = convertVehicleInfo(gmData);
+            const smartcarData = ConvertVehicleData.info(gmData);
             sendClient200(smartcarData, res);
         }, (err) => {
             sendClient405(res);
@@ -49,7 +50,7 @@ module.exports = function(app) {
     app.all('/vehicles/:id/doors', (req, res) => {
         passGetRequestToGmApi('/getSecurityStatusService', req, res)
         .then((gmData) => {
-            const smartcarData = convertSecurityStatus(gmData);
+            const smartcarData = ConvertVehicleData.securityStatus(gmData);
             sendClient200(smartcarData, res);
         }, (err) => {
             sendClient405(res);
@@ -68,7 +69,7 @@ module.exports = function(app) {
     app.all('/vehicles/:id/fuel', (req, res) => {
         passGetRequestToGmApi('/getEnergyService', req, res)
         .then((gmData) => {
-            const smartcarData = convertEnergyToFuel(gmData);
+            const smartcarData = ConvertVehicleData.energyToFuel(gmData);
             sendClient200(smartcarData, res);
         }, (err) => {
             sendClient405(res);
@@ -87,7 +88,7 @@ module.exports = function(app) {
     app.all('/vehicles/:id/battery', (req, res) => {
         passGetRequestToGmApi('/getEnergyService', req, res)
         .then((gmData) => {
-            const smartcarData = convertEnergyToBattery(gmData);
+            const smartcarData = ConvertVehicleData.energyToBattery(gmData);
             sendClient200(smartcarData, res);
         }, (err) => {
             sendClient405(res);
@@ -106,98 +107,14 @@ module.exports = function(app) {
     app.all('/vehicles/:id/engine', (req, res) => {
         passPostRequestToGmApi('/actionEngineService', req, res)
         .then((gmData) => {
-            const smartcarData = convertEngineAction(gmData);
+            const smartcarData = ConvertVehicleData.engineAction(gmData);
             sendClient200(smartcarData, res);
         }, (err) => {
             sendClient405(res);
         });
     });
 
-
-    // END OF EXPORTED MODULE
 };
-
-
-/*
- * Data conversion functions: GM API data format -> Smartcar API data format
- */
-
-
- function convertVehicleInfo(gmData) {
-     gmData = JSON.parse(gmData);
-     // extract vin, color, doorCount and driveTrain from data
-     const vin = gmData.data.vin.value;
-     const color = gmData.data.color.value;
-     var doorCount;
-     // Schrödinger's car: car is simultaneously 2-door AND 4-door -> Return 500
-     if (gmData.data.fourDoorSedan.value === "True" && gmData.data.twoDoorCoupe.value === "True") {
-         res.statusCode = 500;
-         res.end("");
-     // Car is neither 2-door nor 4-door -> Return 500?  Assume 3-door?
-     } else if (gmData.data.fourDoorSedan.value === "False" && gmData.data.twoDoorCoupe.value === "False") {
-         res.statusCode = 500;
-         res.end("");
-     } else if (gmData.data.fourDoorSedan.value === "True") {
-         doorCount = 4;
-     } else if(gmData.data.twoDoorCoupe.value === "True") {
-         doorCount = 2;
-     } else {
-         res.statusCode = 500;
-         res.end("");
-     }
-     const driveTrain = gmData.data.driveTrain.value;
-     return {vin, color, doorCount, driveTrain};
- }
-
-
- function convertSecurityStatus(gmData) {
-     gmData = JSON.parse(gmData);
-     // collect re-formatted data in doorData
-     var doorData = [];
-     gmData.data.doors.values.forEach((val, index) => {
-         var myDoor = {};
-         myDoor.location = val.location.value;
-         if (val.locked.value === "True") {
-             myDoor.locked = true;
-         } else if (val.locked.value === "False") {
-             myDoor.locked = false;
-         } else {
-             res.statusCode = 500;
-             res.end("");
-         }
-         doorData.push(myDoor);
-     });
-     return doorData;
- }
-
-
- function convertEnergyToFuel(gmData) {
-     gmData = JSON.parse(gmData);
-     // cast tankLevel to a number
-     return {"percent": +gmData.data.tankLevel.value};
- }
-
-
- function convertEnergyToBattery(gmData) {
-     gmData = JSON.parse(gmData);
-     // cast batteryLevel to a number
-     return {"percent": +gmData.data.batteryLevel.value}
- }
-
-
- function convertEngineAction(gmData) {
-     gmData = JSON.parse(gmData);
-     var status;
-     if (gmData.actionResult.status === "EXECUTED") {
-         status = "success";
-     } else if (gmData.actionResult.status === "FAILED") {
-         status = "error";
-     } else {
-         res.statusCode = 500;
-         res.end("");
-     }
-     return {"status": status};
- }
 
 
 
