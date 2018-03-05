@@ -5,6 +5,7 @@
  */
 
 const ConvertVehicleData = require('../utilities/ConvertVehicleData.js');
+const VehicleTests = require('../routes/vehicles.spec.js');
 var assert = require('assert');
 
 
@@ -42,12 +43,15 @@ const invalidEngineData = '{"service":"actionEngine","status":"200","actionResul
 
 
 /*
- * Tests
+ * Unit Tests
  */
 
 describe('ConvertVehicleData', function() {
 
-
+    // ConvertVehicleData tests run last. Turn off the server when complete.
+    after(function() {
+        VehicleTests.killTestServer();
+    });
 
     it('should convert GM API-style vehicle info to Smartcar API-style vehicle info', function(done) {
         // test against data for /vehicles/1234
@@ -114,8 +118,12 @@ describe('ConvertVehicleData', function() {
     });
     it('should NOT convert GM API-style fuel-level info to Smartcar API-style fuel-level info for electric vehicles', function(done) {
         // test against data for /vehicles/1235/fuel
-        assert.equal(ConvertVehicleData.energyToFuel(gmEnergy1235).message.slice(0), "You requested the tank level of an electric vehicle.  There is no tank level.")
-        assert.equal(ConvertVehicleData.energyToFuel(gmEnergy1235).httpStatusCode, 400)
+        try {
+            ConvertVehicleData.energyToFuel(gmEnergy1235)
+        } catch (e) {
+            assert.equal(e.message, "You requested the tank level of an electric vehicle.  There is no tank level.");
+            assert.equal(e.httpStatusCode, 400);
+        }
         done();
     });
 
@@ -128,8 +136,12 @@ describe('ConvertVehicleData', function() {
     });
     it('should NOT convert GM API-style battery-level info to Smartcar API-style battery-level info for petroleum-powered vehicles', function(done) {
         // test against data for /vehicles/1234/battery
-        assert.equal(ConvertVehicleData.energyToBattery(gmEnergy1234).message.slice(0), "You requested the battery level of a petroleum-powered vehicle.  There is no battery level.")
-        assert.equal(ConvertVehicleData.energyToBattery(gmEnergy1234).httpStatusCode, 400)
+        try {
+            ConvertVehicleData.energyToBattery(gmEnergy1234)
+        } catch (e) {
+            assert.equal(e.message,  "You requested the battery level of a petroleum-powered vehicle.  There is no battery level.");
+            assert.equal(e.httpStatusCode, 400);
+        }
         done();
     });
 

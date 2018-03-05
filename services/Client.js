@@ -12,7 +12,6 @@
 
 
  function sendError(err, res) {
-     console.log(err);
      res.statusCode = err.httpStatusCode;
      res.end(err.message);
  }

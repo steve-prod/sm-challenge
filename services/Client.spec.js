@@ -8,7 +8,7 @@ var assert = require('assert');
 
 
 /*
- * Tests
+ * Unit Tests
  */
 
 describe('Client', function() {

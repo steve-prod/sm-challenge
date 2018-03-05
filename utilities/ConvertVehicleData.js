@@ -95,7 +95,7 @@ function doorLocationCompareFunction(a, b) {
 function energyToFuel(data) {
     const gmData = JSON.parse(data);
     if (gmData.data.tankLevel.value === "null") {
-        return new NullTankLevelError();
+        throw new NullTankLevelError();
     }
     // cast tankLevel to a number
     return {"percent": +gmData.data.tankLevel.value};
@@ -106,7 +106,7 @@ function energyToFuel(data) {
 function energyToBattery(data) {
     const gmData = JSON.parse(data);
     if (gmData.data.batteryLevel.value === "null") {
-        return new NullBatteryLevelError();
+        throw new NullBatteryLevelError();
     }
     // cast batteryLevel to a number
     return {"percent": +gmData.data.batteryLevel.value}
@@ -144,7 +144,7 @@ class InvalidRequestError extends Error {
 class NullTankLevelError extends InvalidRequestError {
      constructor() {
          super();
-         // overwrite error message
+         this.httpStatusCode = 400;
          this.message = "You requested the tank level of an electric vehicle.  There is no tank level.";
      }
 }
@@ -152,7 +152,7 @@ class NullTankLevelError extends InvalidRequestError {
 class NullBatteryLevelError extends InvalidRequestError {
      constructor() {
          super();
-         // overwrite error message
+         this.httpStatusCode = 400;
          this.message = "You requested the battery level of a petroleum-powered vehicle.  There is no battery level.";
      }
 }

@@ -8,7 +8,7 @@ var assert = require('assert');
 
 
 /*
- * Tests
+ * Integration Tests
  */
 
 describe('GmApi', function() {
@@ -20,7 +20,7 @@ describe('GmApi', function() {
             assert.equal(gmData.service, "getVehicleInfo");
             done();
         }, (err) => {
-            // This should NOT occur
+            // This should NOT occur. Test will timeout and fail.
             console.log("Error: ", err);
         });
     });
@@ -28,8 +28,7 @@ describe('GmApi', function() {
         const req = {method: "POST", params: {id: "1234"}};
         GmApi.Get('/getVehicleInfoService', req)
         .then((data) => {
-            const gmData = JSON.parse(data);
-            assert.equal(gmData.service, "This should NOT have occurred.");
+            // This should NOT occur. Test will timeout and fail.
         }, (err) => {
             assert.equal(err.message, "Method Not Allowed");
             assert.equal(err.httpStatusCode, 405);
@@ -44,7 +43,7 @@ describe('GmApi', function() {
             assert.equal(gmData.service, "actionEngine");
             done();
         }, (err) => {
-            // This should NOT occur
+            // This should NOT occur. Test will timeout and fail.
             console.log("Error: ", err);
         });
     });
@@ -52,8 +51,7 @@ describe('GmApi', function() {
         const req = {method: "GET", params: {id: "1234"}};
         GmApi.Post('/actionEngineService', req)
         .then((data) => {
-            const gmData = JSON.parse(data);
-            assert.equal(gmData.service, "getVehicleInfo");
+            // This should NOT occur. Test will timeout and fail.
         }, (err) => {
             assert.equal(err.message, "Method Not Allowed");
             assert.equal(err.httpStatusCode, 405);
@@ -64,8 +62,7 @@ describe('GmApi', function() {
         const req = {method: "GET", params: {id: "123X"}};
         GmApi.Get('/actionEngineService', req)
         .then((data) => {
-            const gmData = JSON.parse(data);
-            assert.equal(gmData.service, "actionEngine");
+            // This should NOT occur. Test will timeout and fail.
         }, (err) => {
             assert.equal(err.message, "vehicle ID must be a number");
             assert.equal(err.httpStatusCode, 400);
@@ -76,8 +73,7 @@ describe('GmApi', function() {
         const req = {method: "POST", body: {action: "START"}, params: {id: "123X"}};
         GmApi.Post('/actionEngineService', req)
         .then((data) => {
-            const gmData = JSON.parse(data);
-            assert.equal(gmData.service, "actionEngine");
+            // This should NOT occur. Test will timeout and fail.
         }, (err) => {
             assert.equal(err.message, "vehicle ID must be a number");
             assert.equal(err.httpStatusCode, 400);
@@ -88,8 +84,7 @@ describe('GmApi', function() {
         const req = {method: "POST", body: {action: "RESTART"}, params: {id: "1234"}};
         GmApi.Post('/actionEngineService', req)
         .then((data) => {
-            const gmData = JSON.parse(data);
-            assert.equal(gmData.service, "actionEngine");
+            // This should NOT occur. Test will timeout and fail.
         }, (err) => {
             assert.equal(err.message, "action must be either START or STOP");
             assert.equal(err.httpStatusCode, 400);

@@ -17,4 +17,9 @@ const app = express();
 const port = 3000;
 require('./routes/vehicles.js')(app);
 
-app.listen(port, () => console.log(`Smartcar API listening on port ${port}!`));
+var server = app.listen(port, () => console.log(`Smartcar API listening on port ${port}!`));
+server.kill = function() {
+    process.exit();
+}
+
+module.exports = server;
