@@ -95,9 +95,11 @@ and then
 Testing is done with Mocha & Chai.
 
 To run tests:
+
      npm test
 
 To generate test coverage analysis:
+
      npm run coverage
 
 Then open /coverage/lcov-report/index.html in your browser to view report
