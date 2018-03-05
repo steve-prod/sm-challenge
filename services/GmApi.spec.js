@@ -1,3 +1,8 @@
+/*
+ * Integration tests for GmApi.js
+ * Explicitly tests all EXPORTED functions and all errors
+ * Implicitly tests all non-exported functions
+ */
 const GmApi = require('../services/GmApi.js');
 var assert = require('assert');
 
