@@ -7,7 +7,7 @@ const http = require('http');
 
 
 // Get processes GET requests to the Smartcar API and makes POST request to GM API
-function Get(endpoint, req, res) {
+function Get(endpoint, req) {
     if (req.method !== 'GET') {
         return new Promise((resolve, reject) => {
             reject(new MethodNotAllowedError());
@@ -28,7 +28,7 @@ function Get(endpoint, req, res) {
 
 
 // Post processes POST requests to the Smartcar API and makes POST request to GM API
-function Post(endpoint, req, res) {
+function Post(endpoint, req) {
     if (req.method !== 'POST') {
         return new Promise((resolve, reject) => {
             reject(new MethodNotAllowedError());

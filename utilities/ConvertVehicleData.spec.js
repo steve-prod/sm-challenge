@@ -1,9 +1,9 @@
-// var chai = require('chai');
-// var chaiHttp = require('chai-http');
-// var server = require('../app');
-// var should = chai.should();
-//
-// chai.use(chaiHttp);
+/*
+ * Unit tests for ConvertVehicleData.js
+ * Tests all functions, all errors extending InvalidRequestError and all errors
+ * extending InvalidDataError
+ */
+
 const ConvertVehicleData = require('../utilities/ConvertVehicleData.js');
 var assert = require('assert');
 
@@ -46,6 +46,9 @@ const invalidEngineData = '{"service":"actionEngine","status":"200","actionResul
  */
 
 describe('ConvertVehicleData', function() {
+
+
+
     it('should convert GM API-style vehicle info to Smartcar API-style vehicle info', function(done) {
         // test against data for /vehicles/1234
         assert.equal(ConvertVehicleData.info(gmInfo1234).vin, "123123412412");
@@ -62,11 +65,17 @@ describe('ConvertVehicleData', function() {
         assert.equal(ConvertVehicleData.info(nissanVersa).color, "Cherry Red");
         assert.equal(ConvertVehicleData.info(nissanVersa).doorCount, 3);
         assert.equal(ConvertVehicleData.info(nissanVersa).driveTrain, "Front Wheel Drive 1.6 L/98");
+        done();
+    });
+    it('should NOT convert invalid GM API-style vehicle info to Smartcar API-style vehicle info', function(done) {
         // test against data for schrödingers24Door
         assert.equal(ConvertVehicleData.info(schrödingers24Door).message.slice(0, 25), "InvalidNumberOfDoorsError");
         assert.equal(ConvertVehicleData.info(schrödingers24Door).httpStatusCode, 500);
         done();
     });
+
+
+
     it('should convert GM API-style door info to Smartcar API-style door info', function(done) {
         // test against data for /vehicles/1234/doors
         assert.equal(ConvertVehicleData.securityStatus(gmDoors1234).length, 4);
@@ -84,6 +93,9 @@ describe('ConvertVehicleData', function() {
         assert.equal(ConvertVehicleData.securityStatus(gmDoors1235)[0].locked, true);
         assert.equal(ConvertVehicleData.securityStatus(gmDoors1235)[1].location, "frontRight");
         assert.equal(ConvertVehicleData.securityStatus(gmDoors1235)[1].locked, false);
+        done();
+    });
+    it('should NOT convert invalid GM API-style door info to Smartcar API-style door info', function(done) {
         // test against data for invalidDoorData1
         assert.equal(ConvertVehicleData.securityStatus(invalidDoorData1).message.slice(0, 22), "InvalidDoorStatusError");
         assert.equal(ConvertVehicleData.securityStatus(invalidDoorData1).httpStatusCode, 500);
@@ -92,27 +104,45 @@ describe('ConvertVehicleData', function() {
         assert.equal(ConvertVehicleData.securityStatus(invalidDoorData2).httpStatusCode, 500);
         done();
     });
+
+
+
     it('should convert GM API-style fuel-level info to Smartcar API-style fuel-level info', function(done) {
         // test against data for /vehicles/1234/fuel
         assert.equal(ConvertVehicleData.energyToFuel(gmEnergy1234).percent, 83.2);
+        done();
+    });
+    it('should NOT convert GM API-style fuel-level info to Smartcar API-style fuel-level info for electric vehicles', function(done) {
         // test against data for /vehicles/1235/fuel
         assert.equal(ConvertVehicleData.energyToFuel(gmEnergy1235).message.slice(0), "You requested the tank level of an electric vehicle.  There is no tank level.")
         assert.equal(ConvertVehicleData.energyToFuel(gmEnergy1235).httpStatusCode, 400)
         done();
     });
+
+
+
     it('should convert GM API-style battery-level info to Smartcar API-style battery-level info', function(done) {
-        // test against data for /vehicles/1234/battery
-        assert.equal(ConvertVehicleData.energyToBattery(gmEnergy1234).message.slice(0), "You requested the battery level of a petroleum-powered vehicle.  There is no battery level.")
-        assert.equal(ConvertVehicleData.energyToBattery(gmEnergy1234).httpStatusCode, 400)
         // test against data for /vehicles/1235/battery
         assert.equal(ConvertVehicleData.energyToBattery(gmEnergy1235).percent, 79.38);
         done();
     });
+    it('should NOT convert GM API-style battery-level info to Smartcar API-style battery-level info for petroleum-powered vehicles', function(done) {
+        // test against data for /vehicles/1234/battery
+        assert.equal(ConvertVehicleData.energyToBattery(gmEnergy1234).message.slice(0), "You requested the battery level of a petroleum-powered vehicle.  There is no battery level.")
+        assert.equal(ConvertVehicleData.energyToBattery(gmEnergy1234).httpStatusCode, 400)
+        done();
+    });
+
+
+
     it('should convert GM API-style engine info to Smartcar API-style engine info', function(done) {
         // test against data for /vehicles/1234/engine (failed example)
         assert.equal(ConvertVehicleData.engineAction(gmEngine1234).status, "error");
         // test against data for /vehicles/1235/engine (succeed example)
         assert.equal(ConvertVehicleData.engineAction(gmEngine1235).status, "success");
+        done();
+    });
+    it('should NOT convert invalid GM API-style engine info to Smartcar API-style engine info', function(done) {
         // test against invalid data
         assert.equal(ConvertVehicleData.engineAction(invalidEngineData).message.slice(0, 24), "InvalidEngineActionError");
         assert.equal(ConvertVehicleData.engineAction(invalidEngineData).httpStatusCode, 500);

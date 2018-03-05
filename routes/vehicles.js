@@ -30,7 +30,7 @@ module.exports = function(app) {
      *    }
      */
     app.all('/vehicles/:id', (req, res) => {
-        GmApi.Get('/getVehicleInfoService', req, res)
+        GmApi.Get('/getVehicleInfoService', req)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.info(gmData);
             Client.sendData(smartcarData, res, 200);
@@ -56,7 +56,7 @@ module.exports = function(app) {
      *    ]
      */
     app.all('/vehicles/:id/doors', (req, res) => {
-        GmApi.Get('/getSecurityStatusService', req, res)
+        GmApi.Get('/getSecurityStatusService', req)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.securityStatus(gmData);
             Client.sendData(smartcarData, res, 200);
@@ -75,7 +75,7 @@ module.exports = function(app) {
      *    }
      */
     app.all('/vehicles/:id/fuel', (req, res) => {
-        GmApi.Get('/getEnergyService', req, res)
+        GmApi.Get('/getEnergyService', req)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.energyToFuel(gmData);
             Client.sendData(smartcarData, res, 200);
@@ -94,7 +94,7 @@ module.exports = function(app) {
      *    }
      */
     app.all('/vehicles/:id/battery', (req, res) => {
-        GmApi.Get('/getEnergyService', req, res)
+        GmApi.Get('/getEnergyService', req)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.energyToBattery(gmData);
             Client.sendData(smartcarData, res, 200);
@@ -113,7 +113,7 @@ module.exports = function(app) {
      *    }
      */
     app.all('/vehicles/:id/engine', (req, res) => {
-        GmApi.Post('/actionEngineService', req, res)
+        GmApi.Post('/actionEngineService', req)
         .then((gmData) => {
             const smartcarData = ConvertVehicleData.engineAction(gmData);
             Client.sendData(smartcarData, res, 200);
