@@ -82,6 +82,15 @@ responses have the format:
   "status": "success|error"
 }
 
+## Running the project
+As with any Node project,
+
+npm install
+
+and then
+
+npm start
+
 ## Testing
 Testing is done with Mocha & Chai.
 
