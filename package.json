@@ -4,11 +4,16 @@
   "description": "An implementation of a small subset of the Smartcar spec",
   "main": "app.js",
   "scripts": {
-    "test": "test"
+    "test": "mocha '**/*.spec.js'"
   },
   "author": "Steve Sharp",
   "license": "MIT",
   "dependencies": {
     "express": "^4.16.2"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-http": "^3.0.0",
+    "mocha": "^5.0.1"
   }
 }
